@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 from time import sleep
 
@@ -12,10 +11,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from db_setup import ReleaseSummary, Base
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from base_fabric import BaseFabric
+from base_fabric import LocatorType
 
 logging.basicConfig(filename="beta_stats.log", level=logging.INFO)
 engine = create_engine('sqlite:///fabric_scraping.db')
@@ -24,38 +21,9 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-# """
-# Set of supported locator strategies.
-# """
-#
-# "id"
-# "xpath"
-# "link text"
-# "partial link text"
-# "name"
-# "tag name"
-# "class name"
-# "css selector"
+Fabric = BaseFabric()
 
-
-def wait_until_visible_by(select_type, selector):
-    element = WebDriverWait(driver, 10).until(
-        EC.visibility_of_element_located((select_type, selector)))
-
-    return element
-
-
-def wait_until_clickable_by(select_type, selector):
-    element = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((select_type, selector))
-    )
-    return element
-
-TIMEOUT = 5
-with open('secret.json') as f:
-    SECRET_DICT = json.loads(f.read())
-
-open_pulls = requests.get("https://api.github.com/repos/{}/pulls?sort=updated&per_page=100&access_token={}".format(SECRET_DICT['org'], SECRET_DICT['github_token'])).json()
+open_pulls = requests.get("https://api.github.com/repos/{}/pulls?sort=updated&per_page=100&access_token={}".format(Fabric.ORG, Fabric.TOKEN)).json()
 
 branch_names = []
 for pull in open_pulls:
@@ -68,69 +36,62 @@ for pull in open_pulls:
                 }
     branch_names.append(new_dict)
 
-# driver = webdriver.PhantomJS("/usr/local/bin/phantomjs")
-driver = webdriver.Chrome('chromedriver')
 
-# Log into fabric.io
-driver.get("https://fabric.io/login")
-sleep(1)
-wait_until_clickable_by('id', 'email').send_keys(SECRET_DICT['username'])
-wait_until_clickable_by('id', 'password').send_keys(SECRET_DICT['password'])
-sleep(1)
-wait_until_clickable_by('css selector', '.sdk-button').click()
-WebDriverWait(driver, 8).until(
-        EC.presence_of_element_located((By.ID, "l_dashboard")))
+Fabric.fabric_login()
+
 # Get list of urls for specific branch
 # {"<app name>" : "<fabric beta url for that app"}
-apps = {}
+apps = {"modie": "https://fabric.io/hudl5/ios/apps/com.hudl.modie/beta/releases/latest",
+        "modi": "https://fabric.io/hudl5/ios/apps/com.hudl.modi/beta/releases/latest"}
+
 for app, url in apps.items():
-    driver.get(url)
+    Fabric.driver.get(url)
 
     try:
-        wait_until_clickable_by('xpath', '//*[@id="l_dashboard"]/aside/div/div/div/div[2]/div[6]/div[1]/div/i').click()
+        Fabric.wait_until_clickable_by(LocatorType.XPATH, '//*[@id="l_dashboard"]/aside/div/div/div/div[2]/div[6]/div[1]/div/i').click()
     except TimeoutException:
         pass
 
     for branch in branch_names:
         try:
-            search_box = driver.find_element_by_xpath("//input[@placeholder='Search Builds']")
+            search_box = Fabric.driver.find_element_by_xpath("//input[@placeholder='Search Builds']")
         except NoSuchElementException:
-            wait_until_clickable_by('class name', "beta_distribution").click()
-            search_box = driver.find_element_by_xpath("//input[@placeholder='Search Builds']")
+            Fabric.wait_until_clickable_by(LocatorType.CLASS_NAME, "beta_distribution").click()
+            search_box = Fabric.driver.find_element_by_xpath("//input[@placeholder='Search Builds']")
 
         if not search_box.is_displayed():
-            wait_until_visible_by('class name', "distributed-at")
-            wait_until_clickable_by('css selector', ".release-picker-container").click()
+            Fabric.wait_until_visible_by(LocatorType.CLASS_NAME, "distributed-at")
+            Fabric.wait_until_clickable_by(LocatorType.CSS_SELECTOR, ".release-picker-container").click()
 
-        wait_until_clickable_by('xpath', "//input[@placeholder='Search Builds']").clear()
+            Fabric.wait_until_clickable_by(LocatorType.XPATH, "//input[@placeholder='Search Builds']").clear()
 
-        wait_until_clickable_by('xpath', "//input[@placeholder='Search Builds']").send_keys(branch['branch_name'])
+            Fabric.wait_until_clickable_by(LocatorType.XPATH, "//input[@placeholder='Search Builds']").send_keys(branch['branch_name'])
         sleep(1)
 
         build_links = []
-        for link in driver.find_elements_by_xpath("//div[@class='releases']/a"):
+        for link in Fabric.driver.find_elements_by_xpath("//div[@class='releases']/a"):
             build_links.append(link.get_attribute('href'))
 
         data = []
 
         for link in build_links:
-            driver.get(link)
+            Fabric.driver.get(link)
 
-            sessions = wait_until_clickable_by('xpath',
+            sessions = Fabric.wait_until_clickable_by(LocatorType.XPATH,
                 '//*[@id="l_dashboard"]/article/div[1]/aside/div/div/div[2]/div[2]/div/div[1]/div[1]/div/div/div[1]').text
-            time_tested = wait_until_clickable_by('xpath',
+            time_tested = Fabric.wait_until_clickable_by(LocatorType.XPATH,
                 '//*[@id="l_dashboard"]/article/div[1]/aside/div/div/div[2]/div[2]/div/div[1]/div[2]/div/div/div[1]').text
-            time_unit = wait_until_clickable_by('xpath',
+            time_unit = Fabric.wait_until_clickable_by(LocatorType.XPATH,
                 '//*[@id="l_dashboard"]/article/div[1]/aside/div/div/div[2]/div[2]/div/div[1]/div[2]/div/div/div[2]').text
-            crash_free_devices = wait_until_clickable_by('xpath',
+            crash_free_devices = Fabric.wait_until_clickable_by(LocatorType.XPATH,
                 '//*[@id="l_dashboard"]/article/div[1]/aside/div/div/div[2]/div[2]/div/div[2]/div[1]/div/div[1]/div/div[1]').text
-            crash_free_sessions = wait_until_clickable_by('xpath',
+            crash_free_sessions = Fabric.wait_until_clickable_by(LocatorType.XPATH,
                 '//*[@id="l_dashboard"]/article/div[1]/aside/div/div/div[2]/div[2]/div/div[2]/div[2]/div/div[1]/div/div[1]').text
-            devices = wait_until_clickable_by('xpath',
+            devices = Fabric.wait_until_clickable_by(LocatorType.XPATH,
                 '//*[@id="l_dashboard"]/article/div[1]/aside/div/div/div[2]/div[2]/div/div[2]/div[1]/div/div[2]/div/div/div[1]/div[1]').text
-            crashed = wait_until_clickable_by('xpath',
+            crashed = Fabric.wait_until_clickable_by(LocatorType.XPATH,
                 '//*[@id="l_dashboard"]/article/div[1]/aside/div/div/div[2]/div[2]/div/div[2]/div[1]/div/div[2]/div/div/div[2]/div[1]').text
-            sessions_crashed = wait_until_clickable_by('xpath',
+            sessions_crashed = Fabric.wait_until_clickable_by(LocatorType.XPATH,
                 '//*[@id="l_dashboard"]/article/div[1]/aside/div/div/div[2]/div[2]/div/div[2]/div[2]/div/div[2]/div/div/div[2]/div[1]').text
 
             hours = 0
@@ -246,13 +207,13 @@ for pr in missing_prs:
     for row in session.query(ReleaseSummary).filter(ReleaseSummary.pr_number == pr).filter(ReleaseSummary.pr_closed_at == None).all():
         print("PR was closed or merged: {}".format(row.branch))
         closed_pulls = requests.get(
-            "https://api.github.com/repos/{}/pulls/{}?access_token={}".format(SECRET_DICT['org'],
+            "https://api.github.com/repos/{}/pulls/{}?access_token={}".format(Fabric.ORG,
                 row.pr_number,
-                SECRET_DICT['github_token'])).json()
+                Fabric.TOKEN)).json()
         row.pr_updated_at = datetime.strptime(closed_pulls['updated_at'], '%Y-%m-%dT%H:%M:%SZ')
         row.pr_closed_at = datetime.strptime(closed_pulls['closed_at'], '%Y-%m-%dT%H:%M:%SZ')
         row.pr_merged_at = datetime.strptime(closed_pulls['merged_at'], '%Y-%m-%dT%H:%M:%SZ')
     session.commit()
 
-driver.quit()
+Fabric.driver.quit()
 

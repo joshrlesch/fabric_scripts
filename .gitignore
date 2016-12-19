@@ -88,6 +88,12 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# PyCharm
+.idea/
+
 .DS_Store
 fabric_scraping.db
 secret.json
+
+chromedriver
+
