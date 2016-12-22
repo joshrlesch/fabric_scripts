@@ -73,87 +73,89 @@ def versions():
     }
     return apps
 
-
-apps = versions()
-for bundles, versions in apps.items():
-    for version in versions:
-        print("Bundle: {}, Version: {}".format(bundles, version))
-        Fabric.driver.get(get_link(bundles, version))
-        try:
-            Fabric.wait_until_visible_by('css selector', '.i_issue.open')
-            crash_table = Fabric.driver.find_elements_by_css_selector(
-                '.i_issue.open')
-        except TimeoutException:
-            print("NO CRASHES FOR {} {}".format(bundles, version))
-            continue
-        for crash in crash_table:
-            crash_info = crash.__getattribute__('text').splitlines()
-            number_of_notes = 0
-            percent_rooted = None
-            device = None
-            os_version = None
-            platform = get_platform(bundles)
+try:
+    apps = versions()
+    for bundles, versions in apps.items():
+        for version in versions:
+            print("Bundle: {}, Version: {}".format(bundles, version))
+            Fabric.driver.get(get_link(bundles, version))
             try:
-                if crash.find_element_by_class_name('badges'):
-                    link = crash.find_element_by_class_name(
-                        'ellipsis').get_attribute('href')[17:]
-                    loop = True
-                    index = 1
-                    while loop:
-                        try:
-                            icon = crash.find_element_by_xpath(
-                                "//a[@href='{}']/../div[@class='badges']/div[{}]".
-                                format(link, index))
-                            icon_attribute = icon.get_attribute('data-hint')
-                            if 'note' in icon_attribute:
-                                number_of_notes = icon.text
-                            elif 'Rooted' in icon_attribute:
-                                percent_rooted = icon.text
-                            elif 'Rooted' not in icon_attribute and 'iOS' not in icon_attribute and 'Android' not in icon_attribute and '%' in icon_attribute:
-                                device = icon.text
-                            elif 'Android' in icon_attribute or 'iOS' in icon_attribute:
-                                os_version = icon.text
-                            else:
-                                pass
-                                # print("NO ENTRY FOR BADGE TYPE")
-                        except NoSuchElementException:
-                            loop = False
-                            # print("NO MORE BADGES")
-                        index += 1
-            except NoSuchElementException:
-                pass
-                # print("NO BADGES")
-            first_seen, last_seen = seen(crash_info)
-            try:
-                crash_search = session.query(TopCrashes).filter(
-                    TopCrashes.crash_subtitle == crash_info[1]).filter(
-                        TopCrashes.app_version == version).one()
-                crash_search.last_seen = last_seen
-                crash_search.number_of_notes = number_of_notes
-                crash_search.percent_rooted = percent_rooted
-                crash_search.os_version = os_version
-                crash_search.device = device
-                crash_search.number_of_crashes = crash_info[len(crash_info) -
-                                                            4]
-                crash_search.number_of_users = crash_info[len(crash_info) - 2]
-                session.commit()
-                print("Updated Entry: {}".format(crash_info[0]))
-            except NoResultFound:
-                print("New Entry: {}".format(crash_info[0]))
-                info_to_db = TopCrashes(
-                    platform=platform,
-                    app_version=version,
-                    crash_name=crash_info[0],
-                    crash_subtitle=crash_info[1],
-                    first_seen=first_seen,
-                    last_seen=last_seen,
-                    number_of_notes=number_of_notes,
-                    percent_rooted=percent_rooted,
-                    os_version=os_version,
-                    device=device,
-                    number_of_crashes=crash_info[len(crash_info) - 4],
-                    number_of_users=crash_info[len(crash_info) - 2])
-                session.add(info_to_db)
-                session.commit()
-
-Fabric.driver.quit()
+                Fabric.wait_until_visible_by('css selector', '.i_issue.open')
+                crash_table = Fabric.driver.find_elements_by_css_selector(
+                    '.i_issue.open')
+            except TimeoutException:
+                print("NO CRASHES FOR {} {}".format(bundles, version))
+                continue
+            for crash in crash_table:
+                crash_info = crash.__getattribute__('text').splitlines()
+                number_of_notes = 0
+                percent_rooted = None
+                device = None
+                os_version = None
+                platform = get_platform(bundles)
+                try:
+                    if crash.find_element_by_class_name('badges'):
+                        link = crash.find_element_by_class_name(
+                            'ellipsis').get_attribute('href')[17:]
+                        loop = True
+                        index = 1
+                        while loop:
+                            try:
+                                icon = crash.find_element_by_xpath(
+                                    "//a[@href='{}']/../div[@class='badges']/div[{}]".
+                                    format(link, index))
+                                icon_attribute = icon.get_attribute('data-hint')
+                                if 'note' in icon_attribute:
+                                    number_of_notes = icon.text
+                                elif 'Rooted' in icon_attribute:
+                                    percent_rooted = icon.text
+                                elif 'Rooted' not in icon_attribute and 'iOS' not in icon_attribute and 'Android' not in icon_attribute and '%' in icon_attribute:
+                                    device = icon.text
+                                elif 'Android' in icon_attribute or 'iOS' in icon_attribute:
+                                    os_version = icon.text
+                                else:
+                                    pass
+                                    # print("NO ENTRY FOR BADGE TYPE")
+                            except NoSuchElementException:
+                                loop = False
+                                # print("NO MORE BADGES")
+                            index += 1
+                except NoSuchElementException:
+                    pass
+                    # print("NO BADGES")
+                first_seen, last_seen = seen(crash_info)
+                try:
+                    crash_search = session.query(TopCrashes).filter(
+                        TopCrashes.crash_subtitle == crash_info[1]).filter(
+                            TopCrashes.app_version == version).one()
+                    crash_search.last_seen = last_seen
+                    crash_search.number_of_notes = number_of_notes
+                    crash_search.percent_rooted = percent_rooted
+                    crash_search.os_version = os_version
+                    crash_search.device = device
+                    crash_search.number_of_crashes = crash_info[len(crash_info) -
+                                                                4]
+                    crash_search.number_of_users = crash_info[len(crash_info) - 2]
+                    session.commit()
+                    print("Updated Entry: {}".format(crash_info[0]))
+                except NoResultFound:
+                    print("New Entry: {}".format(crash_info[0]))
+                    info_to_db = TopCrashes(
+                        platform=platform,
+                        app_version=version,
+                        crash_name=crash_info[0],
+                        crash_subtitle=crash_info[1],
+                        first_seen=first_seen,
+                        last_seen=last_seen,
+                        number_of_notes=number_of_notes,
+                        percent_rooted=percent_rooted,
+                        os_version=os_version,
+                        device=device,
+                        number_of_crashes=crash_info[len(crash_info) - 4],
+                        number_of_users=crash_info[len(crash_info) - 2])
+                    session.add(info_to_db)
+                    session.commit()
+                    Fabric.driver.quit()
+except Exception as e:
+    Fabric.driver.quit()
+    raise e
