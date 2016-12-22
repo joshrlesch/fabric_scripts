@@ -1,7 +1,7 @@
 import logging
 import os
 
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
@@ -116,13 +116,14 @@ try:
                                 else:
                                     pass
                                     # print("NO ENTRY FOR BADGE TYPE")
-                            except NoSuchElementException:
+                            except NoSuchElementException as e:
                                 loop = False
-                                # print("NO MORE BADGES")
+                                print("NO MORE BADGES")
+                            except StaleElementReferenceException as e:
+                                print("STALE ELEMENT")
                             index += 1
-                except NoSuchElementException:
-                    pass
-                    # print("NO BADGES")
+                except (NoSuchElementException):
+                    print("NO BADGES")
                 first_seen, last_seen = seen(crash_info)
                 try:
                     crash_search = session.query(TopCrashes).filter(
