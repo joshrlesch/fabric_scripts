@@ -13,7 +13,8 @@ class BaseFabric(object):
     TOKEN = os.environ['TOKEN']
 
     # driver = webdriver.PhantomJS("/usr/local/bin/phantomjs")
-    driver = webdriver.Chrome('chromedriver')
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    driver = webdriver.Chrome('{}/chromedriver'.format(dir_path))
 
     def wait_until_visible_by(self, select_type, selector):
         element = WebDriverWait(self.driver, self.TIMEOUT).until(
