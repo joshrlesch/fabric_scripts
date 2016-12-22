@@ -155,7 +155,7 @@ try:
                         number_of_users=crash_info[len(crash_info) - 2])
                     session.add(info_to_db)
                     session.commit()
-                    Fabric.driver.quit()
+    Fabric.driver.quit()
 except Exception as e:
     Fabric.driver.quit()
     raise e
