@@ -24,7 +24,6 @@ modi_versions = os.environ['MODI_VERSION']
 hudroid_versions = os.environ['HUDROID_VERSION']
 
 
-
 def get_link(bundle, version):
     if bundle == 'modi':
         url = "https://fabric.io/hudl5/ios/apps/com.hudl.{}/" \
@@ -84,10 +83,14 @@ try:
             Fabric.driver.get(get_link(bundles, version))
             try:
                 Fabric.wait_until_visible_by('css selector', '.i_issue.open')
-                Fabric.wait_until_visible_by('class name', 'crash-free-percent')
+                Fabric.wait_until_visible_by('class name',
+                                             'crash-free-percent')
                 crash_table = Fabric.driver.find_elements_by_css_selector(
                     '.i_issue.open')
-                crash_rate = Fabric.driver.find_element_by_xpath("//span[@class='crash-free-percent']/div/div/span").text
+                crash_rate = str(
+                    Fabric.driver.find_element_by_xpath(
+                        "//span[@class='crash-free-percent']/div/div/span")
+                    .text)
             except TimeoutException:
                 print("NO CRASHES FOR {} {}".format(bundles, version))
                 continue
@@ -99,7 +102,8 @@ try:
                 os_version = None
                 platform = get_platform(bundles)
                 try:
-                    if crash.find_element_by_class_name('badges'):  # LOOK FOR THIS PER CRASH
+                    if crash.find_element_by_class_name(
+                            'badges'):  # LOOK FOR THIS PER CRASH
                         link = crash.find_element_by_class_name(
                             'ellipsis').get_attribute('href')[17:]
                         loop = True
@@ -109,7 +113,8 @@ try:
                                 icon = crash.find_element_by_xpath(
                                     "//a[@href='{}']/../div[@class='badges']/div[{}]".
                                     format(link, index))
-                                icon_attribute = icon.get_attribute('data-hint')
+                                icon_attribute = icon.get_attribute(
+                                    'data-hint')
                                 if 'note' in icon_attribute:
                                     number_of_notes = icon.text
                                 elif 'Rooted' in icon_attribute:
@@ -139,9 +144,10 @@ try:
                     crash_search.percent_rooted = percent_rooted
                     crash_search.os_version = os_version
                     crash_search.device = device
-                    crash_search.number_of_crashes = crash_info[len(crash_info) -
-                                                                4]
-                    crash_search.number_of_users = crash_info[len(crash_info) - 2]
+                    crash_search.number_of_crashes = crash_info[len(crash_info)
+                                                                - 4]
+                    crash_search.number_of_users = crash_info[len(crash_info) -
+                                                              2]
                     crash_search.crash_rate = crash_rate
                     crash_search.run_time = run_time
                     session.commit()
