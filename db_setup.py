@@ -41,6 +41,8 @@ class TopCrashes(Base):
     device = Column(String(16))
     number_of_crashes = Column(Integer)
     number_of_users = Column(Integer)
+    crash_rate = Column(Integer)
+    run_time = Column(Integer)
     ownership = Column(String(16))
 
 
