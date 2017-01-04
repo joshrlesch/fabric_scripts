@@ -28,7 +28,7 @@ def get_link(bundle, version):
     if bundle == 'modi':
         url = "https://fabric.io/hudl5/ios/apps/com.hudl.{}/" \
               "issues?time=last-seven-days&event_type=crash&sub" \
-              "Filter=state&state=open&cohort=new&build%5B0%5D={}".format(bundle, version)
+              "Filter=state&state=open&cohort=new&build%5B0%5D={}".format(bundle, version.split()[0])
         return url
     elif bundle == 'hudroid':
         url = "https://fabric.io/hudl5/android/apps/com.hudl.{}/" \
