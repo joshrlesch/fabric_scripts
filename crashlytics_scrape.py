@@ -94,6 +94,7 @@ try:
             except TimeoutException:
                 print("NO CRASHES FOR {} {}".format(bundles, version))
                 continue
+            link_index = 1
             for crash in crash_table:
                 crash_info = crash.__getattribute__('text').splitlines()
                 number_of_notes = 0
@@ -104,8 +105,8 @@ try:
                 try:
                     if crash.find_element_by_class_name(
                             'badges'):  # LOOK FOR THIS PER CRASH
-                        link = crash.find_element_by_class_name(
-                            'ellipsis').get_attribute('href')[17:]
+                        link = crash.find_element_by_xpath(
+                            "//tbody[@class='bg-white']/tr[{}]/td[2]/a".format(link_index)).get_attribute('href')[17:]
                         loop = True
                         index = 1
                         while loop:
@@ -171,6 +172,7 @@ try:
                         run_time=run_time)
                     session.add(info_to_db)
                     session.commit()
+                link_index += 1
     Fabric.driver.quit()
 except Exception as e:
     Fabric.driver.quit()
