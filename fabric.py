@@ -213,7 +213,8 @@ try:
                     Fabric.TOKEN)).json()
             row.pr_updated_at = datetime.strptime(closed_pulls['updated_at'], '%Y-%m-%dT%H:%M:%SZ')
             row.pr_closed_at = datetime.strptime(closed_pulls['closed_at'], '%Y-%m-%dT%H:%M:%SZ')
-            row.pr_merged_at = datetime.strptime(closed_pulls['merged_at'], '%Y-%m-%dT%H:%M:%SZ')
+            if closed_pulls['merged_at']:
+                row.pr_merged_at = datetime.strptime(closed_pulls['merged_at'], '%Y-%m-%dT%H:%M:%SZ')
         session.commit()
 
     Fabric.driver.quit()
