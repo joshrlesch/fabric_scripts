@@ -24,26 +24,26 @@ try:
 
     Fabric = BaseFabric()
 
-    open_pulls = requests.get("https://api.github.com/repos/{}/pulls?sort=updated&per_page=100&access_token={}".format(Fabric.ORG, Fabric.TOKEN)).json()
-
     branch_names = []
-    for pull in open_pulls:
-        new_dict = {'branch_name': pull['head']['ref'],
-                    'created_at': pull['created_at'],
-                    'updated_at': pull['updated_at'],
-                    'closed_at': pull['closed_at'],
-                    'merged_at': pull['merged_at'],
-                    'number': pull['number']
-                    }
-        branch_names.append(new_dict)
+    for org in Fabric.ORG.split():
+        open_pulls = requests.get("https://api.github.com/repos/{}/pulls?sort=updated&per_page=100&access_token={}".format(org, Fabric.TOKEN)).json()
+
+        for pull in open_pulls:
+            new_dict = {'branch_name': pull['head']['ref'],
+                        'created_at': pull['created_at'],
+                        'updated_at': pull['updated_at'],
+                        'closed_at': pull['closed_at'],
+                        'merged_at': pull['merged_at'],
+                        'number': pull['number']
+                        }
+            branch_names.append(new_dict)
 
 
     Fabric.fabric_login()
 
     # Get list of urls for specific branch
     # {"<app name>" : "<fabric beta url for that app"}
-    apps = {"modie": "https://fabric.io/hudl5/ios/apps/com.hudl.modie/beta/releases/latest",
-            "modi": "https://fabric.io/hudl5/ios/apps/com.hudl.modi/beta/releases/latest"}
+    apps = {}
 
     for app, url in apps.items():
         Fabric.driver.get(url)
