@@ -12,7 +12,7 @@ from db_setup import TopCrashes, Base
 from base_fabric import BaseFabric
 
 logging.basicConfig(filename="crashlytics_scrape.log", level=logging.INFO)
-engine = create_engine('sqlite:///fabric_scraping.db')
+engine = create_engine('sqlite:////Users/hudl/fabric_scripts/fabric_scraping.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -89,7 +89,7 @@ try:
                     '.i_issue.open')
                 crash_rate = str(
                     Fabric.driver.find_element_by_xpath(
-                        "//span[@class='crash-free-percent']/div/div/span")
+                        "//div[@class='issues_metrics']/div[1]/div/span/div[2]/div/span")
                     .text)
             except TimeoutException:
                 print("NO CRASHES FOR {} {}".format(bundles, version))

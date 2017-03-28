@@ -16,7 +16,7 @@ from base_fabric import LocatorType
 
 try:
     logging.basicConfig(filename="beta_stats.log", level=logging.INFO)
-    engine = create_engine('sqlite:///fabric_scraping.db')
+    engine = create_engine('sqlite:////Users/hudl/fabric_scripts/fabric_scraping.db')
     Base.metadata.bind = engine
 
     DBSession = sessionmaker(bind=engine)
@@ -43,7 +43,9 @@ try:
 
     # Get list of urls for specific branch
     # {"<app name>" : "<fabric beta url for that app"}
-    apps = {}
+    apps = {"modie": "https://fabric.io/hudl5/ios/apps/com.hudl.modie/beta/releases/latest",
+            "modi": "https://fabric.io/hudl5/ios/apps/com.hudl.modi/beta/releases/latest",
+            "android": "https://fabric.io/hudl5/android/apps/com.hudl.hudroid/beta/releases/latest"}
 
     for app, url in apps.items():
         Fabric.driver.get(url)
