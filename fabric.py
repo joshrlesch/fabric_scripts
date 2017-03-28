@@ -16,7 +16,7 @@ from base_fabric import LocatorType
 
 try:
     logging.basicConfig(filename="beta_stats.log", level=logging.INFO)
-    engine = create_engine('sqlite:////Users/hudl/fabric_scripts/fabric_scraping.db')
+    engine = create_engine('sqlite:///fabric_scraping.db')
     Base.metadata.bind = engine
 
     DBSession = sessionmaker(bind=engine)

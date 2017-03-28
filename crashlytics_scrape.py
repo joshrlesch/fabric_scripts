@@ -12,7 +12,7 @@ from db_setup import TopCrashes, Base
 from base_fabric import BaseFabric
 
 logging.basicConfig(filename="crashlytics_scrape.log", level=logging.INFO)
-engine = create_engine('sqlite:////Users/hudl/fabric_scripts/fabric_scraping.db')
+engine = create_engine('sqlite:///fabric_scraping.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -89,13 +89,15 @@ try:
                     '.i_issue.open')
                 crash_rate = str(
                     Fabric.driver.find_element_by_xpath(
-                        "//div[@class='issues_metrics']/div[1]/div/span/div[2]/div/span")
+                        "//div[@class='issues_metrics']/div[1]/div/span/div[2]/div/div/span")
                     .text)
             except TimeoutException:
                 print("NO CRASHES FOR {} {}".format(bundles, version))
                 continue
             link_index = 1
+            link = None  # Loop until not stale
             for crash in crash_table:
+                print("LINK INDEX = {}".format(link_index))
                 crash_info = crash.__getattribute__('text').splitlines()
                 number_of_notes = 0
                 percent_rooted = None
@@ -105,8 +107,14 @@ try:
                 try:
                     if crash.find_element_by_class_name(
                             'badges'):  # LOOK FOR THIS PER CRASH
-                        link = crash.find_element_by_xpath(
-                            "//tbody[@class='bg-white']/tr[{}]/td[2]/a".format(link_index)).get_attribute('href')[17:]
+                        while link == None:
+                            try:
+                                link = crash.find_element_by_xpath(
+                                    "//tbody[@class='bg-white']/tr[{}]/td[2]/a".format(link_index)).get_attribute('href')[17:]
+                                print("LINK ADDRESS = {}".format(link))
+                            except StaleElementReferenceException as e:
+                                print("LINK IS STALE ELEMENT: {}".format(e))
+                                link = None
                         loop = True
                         index = 1
                         while loop:
@@ -118,12 +126,16 @@ try:
                                     'data-hint')
                                 if 'note' in icon_attribute:
                                     number_of_notes = icon.text
+                                    print("NOTES: = {}".format(number_of_notes))
                                 elif 'Rooted' in icon_attribute:
                                     percent_rooted = icon.text
+                                    print("PERCENT ROOTED = {}".format(percent_rooted))
                                 elif 'Rooted' not in icon_attribute and 'iOS' not in icon_attribute and 'Android' not in icon_attribute and '%' in icon_attribute:
                                     device = icon.text
+                                    print("DEVICE = {}".format(device))
                                 elif 'Android' in icon_attribute or 'iOS' in icon_attribute:
                                     os_version = icon.text
+                                    print("OS VERSION = {}".format(os_version))
                                 else:
                                     pass
                                     # print("NO ENTRY FOR BADGE TYPE")
@@ -173,6 +185,7 @@ try:
                     session.add(info_to_db)
                     session.commit()
                 link_index += 1
+                link = None
     Fabric.driver.quit()
 except Exception as e:
     Fabric.driver.quit()

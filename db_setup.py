@@ -46,5 +46,5 @@ class TopCrashes(Base):
     ownership = Column(String(16))
 
 
-engine = create_engine('sqlite:////Users/hudl/fabric_scripts/fabric_scraping.db')
+engine = create_engine('sqlite:///fabric_scraping.db')
 Base.metadata.create_all(engine)
