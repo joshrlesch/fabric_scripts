@@ -143,7 +143,8 @@ try:
                                 loop = False
                                 print("NO MORE BADGES")
                             except StaleElementReferenceException as e:
-                                print("STALE ELEMENT")
+                                print("STALE ELEMENT - SKIPPING")
+                                index += 1
                             index += 1
                 except (NoSuchElementException):
                     print("NO BADGES")
