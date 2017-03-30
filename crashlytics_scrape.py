@@ -95,7 +95,6 @@ try:
                 print("NO CRASHES FOR {} {}".format(bundles, version))
                 continue
             link_index = 1
-            link = None  # Loop until not stale
             for crash in crash_table:
                 print("LINK INDEX = {}".format(link_index))
                 crash_info = crash.__getattribute__('text').splitlines()
@@ -107,15 +106,14 @@ try:
                 try:
                     if crash.find_element_by_class_name(
                             'badges'):  # LOOK FOR THIS PER CRASH
-                        while link == None:
-                            try:
-                                link = crash.find_element_by_xpath(
-                                    "//tbody[@class='bg-white']/tr[{}]/td[2]/a".format(link_index)).get_attribute('href')[17:]
-                                print("LINK ADDRESS = {}".format(link))
-                            except StaleElementReferenceException as e:
-                                print("LINK IS STALE ELEMENT: {}".format(e))
-                                link = None
-                        loop = True
+                        try:
+                            link = crash.find_element_by_xpath(
+                                "//tbody[@class='bg-white']/tr[{}]/td[2]/a".format(link_index)).get_attribute('href')[17:]
+                            print("LINK ADDRESS = {}".format(link))
+                            loop = True
+                        except StaleElementReferenceException as e:
+                            print("LINK IS STALE ELEMENT: {}".format(e))
+                            loop = False
                         index = 1
                         while loop:
                             try:
