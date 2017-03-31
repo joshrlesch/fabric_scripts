@@ -114,6 +114,9 @@ try:
                         except StaleElementReferenceException as e:
                             print("LINK IS STALE ELEMENT: {}".format(e))
                             loop = False
+                        except Exception as e:
+                            print("Other Exception : {}".format(e))
+                            loop = False
                         index = 1
                         while loop:
                             try:
