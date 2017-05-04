@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 Base = declarative_base()
 
 
+
 class ReleaseSummary(Base):
     __tablename__ = 'release_summary'
 
@@ -30,7 +31,7 @@ class TopCrashes(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     platform = Column(String(20))
-    app_version = Column(Integer)
+    app_version = Column(String(16))
     crash_name = Column(String(40))
     crash_subtitle = Column(String(80))
     first_seen = Column(String(16))
