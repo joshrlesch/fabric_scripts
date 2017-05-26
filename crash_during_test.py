@@ -125,7 +125,7 @@ def get_channels(first_squad, last_squad):
 
 def notify(crash_name, user_name, first_build, last_build, first_squad, last_squad):
     channels = get_channels(first_squad, last_squad)
-    payload = json.dumps({"channel": "#modi_test_crashes", "username": "webhookbot", "text": message_content(crash_name, user_name, first_build, last_build, channels), "icon_emoji": ":ghost:"})
+    payload = json.dumps({"channel": "#modi_test_crashes", "username": "Test Crashes", "text": message_content(crash_name, user_name, first_build, last_build, channels), "icon_emoji": ":ghost:"})
     url = 'https://hooks.slack.com/services/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'
     requests.post(url, data=payload)
 
