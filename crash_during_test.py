@@ -103,7 +103,11 @@ def get_name(email):
 
 
 def extract_squad(name):
-    return re.search(r"([A-Z]+)(?=-)", name).group(0)
+    try:
+        squad = re.search(r"([A-Z]+)(?=-)", name).group(0)
+        return squad
+    except AttributeError:
+        return "no-slack-room"
 
 
 def message_content(crash_name, user_name, first_build, last_build, channels):
