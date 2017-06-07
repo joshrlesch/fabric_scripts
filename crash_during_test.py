@@ -2,6 +2,8 @@ import requests
 import json
 import re
 
+from time import sleep
+
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 from base_fabric import BaseFabric
 
@@ -89,14 +91,27 @@ def get_first_last_seen(crash_info):
 
 def get_user(crash_index):
     Fabric.wait_until_clickable_by('xpath', '//*[@class="bg-white"]/tr[{}]'.format(crash_index)).click()
+    crash_message = get_crash_message()
+    print("CRASH MESSAGE: {}".format(crash_message))
     Fabric.wait_until_clickable_by('css selector', '.button.green.inverse.ellipsis').click()
     Fabric.wait_until_visible_by('class name', 'cursor-pointer')
+    sleep(1)
     email = Fabric.driver.find_element_by_class_name('cursor-pointer').get_attribute('text')
     name = get_name(email)
-    return name
+    print("USER NAME: {}".format(name))
+    return name, crash_message
+
+
+def get_crash_message():
+    Fabric.wait_until_clickable_by('css selector', '.flex-1.padding-right-10px.strong.title')
+    crash_message = Fabric.driver.find_element_by_css_selector('.flex-1.padding-right-10px.strong.title')
+    crash_message = crash_message.__getattribute__('text')
+    print(type(crash_message))
+    return crash_message
 
 
 def get_name(email):
+    print("EMAIL: {}".format(email))
     unedited_name = re.search(r"([^@]+)(?=@)", email).group(0)
     name = unedited_name.replace(".", " ").title()
     return(name)
@@ -110,12 +125,12 @@ def extract_squad(name):
         return "no-slack-room"
 
 
-def message_content(crash_name, user_name, first_build, last_build, channels):
+def message_content(crash_name, crash_message, user_name, first_build, last_build, channels):
     return "\n"\
-        "*Crash in Hudl Test: {}*\n"\
+        "*Crash in Hudl Test: {} - {}*\n"\
         "First seen in build _{}_ from #{}\n"\
         "Last seen in build _{}_ from #{}\n"\
-        "last caused by user {}".format(crash_name, first_build, channels[0], last_build, channels[1], user_name)
+        "last caused by user {}".format(crash_name, crash_message, first_build, channels[0], last_build, channels[1], user_name)
 
 
 def get_channels(first_squad, last_squad):
@@ -127,9 +142,9 @@ def get_channels(first_squad, last_squad):
         raise e
 
 
-def notify(crash_name, user_name, first_build, last_build, first_squad, last_squad):
+def notify(crash_name, crash_message, user_name, first_build, last_build, first_squad, last_squad):
     channels = get_channels(first_squad, last_squad)
-    payload = json.dumps({"channel": "#modi_test_crashes", "username": "Test Crashes", "text": message_content(crash_name, user_name, first_build, last_build, channels), "icon_emoji": ":ghost:"})
+    payload = json.dumps({"channel": "#omananny", "username": "Test Crashes", "text": message_content(crash_name, crash_message, user_name, first_build, last_build, channels), "icon_emoji": ":ghost:"})
     url = 'https://hooks.slack.com/services/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'
     requests.post(url, data=payload)
 
@@ -144,12 +159,15 @@ def main():
         while number_of_crashes > 0:
             crash_table = get_table_of_crashes()
             crash_info = get_crash_info(crash_table[number_of_crashes - 1])
-            user_name = get_user(number_of_crashes)
+            user_name, crash_message = get_user(number_of_crashes)
             crash_name = crash_info[0]
             first_build, last_build = get_first_last_seen(crash_info)
             first_squad = extract_squad(first_build)
             last_squad = extract_squad(last_build)
-            notify(crash_name, user_name, first_build, last_build, first_squad, last_squad)
+            if "Fatal Exception: RIP" in crash_message:
+                print("Purposeful crash - don't post...")
+            else:
+                notify(crash_name, crash_message, user_name, first_build, last_build, first_squad, last_squad)
             number_of_crashes -= 1
             Fabric.driver.get(modi_url)
             Fabric.wait_until_clickable_by('class name', 'Select-value-icon').click()
