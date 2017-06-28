@@ -12,7 +12,6 @@ class BaseFabric(object):
     ORG = os.environ['ORG']
     TOKEN = os.environ['TOKEN']
 
-    # driver = webdriver.PhantomJS("/usr/local/bin/phantomjs")
     dir_path = os.path.dirname(os.path.realpath(__file__))
     driver = webdriver.Chrome('{}/chromedriver'.format(dir_path))
 
@@ -24,8 +23,7 @@ class BaseFabric(object):
 
     def wait_until_clickable_by(self, select_type, selector):
         element = WebDriverWait(self.driver, self.TIMEOUT).until(
-            EC.element_to_be_clickable((select_type, selector))
-        )
+            EC.element_to_be_clickable((select_type, selector)))
         return element
 
     def wait_unit_present_by(self, select_type, selector):
@@ -38,10 +36,13 @@ class BaseFabric(object):
         # Log into fabric.io
         self.driver.get("https://fabric.io/login")
         sleep(1)
-        self.wait_until_clickable_by(LocatorType.ID, 'email').send_keys(os.environ['USERNAME'])
-        self.wait_until_clickable_by(LocatorType.ID, 'password').send_keys(os.environ['PASSWORD'])
+        self.wait_until_clickable_by(
+            LocatorType.ID, 'email').send_keys(os.environ['USERNAME'])
+        self.wait_until_clickable_by(
+            LocatorType.ID, 'password').send_keys(os.environ['PASSWORD'])
         sleep(1)
-        self.wait_until_clickable_by(LocatorType.CSS_SELECTOR, '.sdk-button').click()
+        self.wait_until_clickable_by(LocatorType.CSS_SELECTOR,
+                                     '.sdk-button').click()
 
         self.wait_unit_present_by(LocatorType.ID, 'l_dashboard')
 

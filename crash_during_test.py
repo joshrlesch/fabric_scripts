@@ -47,6 +47,7 @@ groups = {
     # "VP": "core-video-perf",  # Deprecated, VP still used
 }
 
+
 def get_table_of_crashes():
     try:
         Fabric.wait_until_visible_by('css selector', '.i_issue.open')
@@ -84,27 +85,32 @@ def get_first_last_seen(crash_info):
         else:
             first_seen = crash_info[3]
             last_seen = crash_info[3]
-    first_seen = first_seen.split(" ")[1].replace("(","").replace(")", "")
+    first_seen = first_seen.split(" ")[1].replace("(", "").replace(")", "")
     last_seen = last_seen.split(" ")[1].replace("(", "").replace(")", "")
     return first_seen, last_seen
 
 
 def get_user(crash_index):
-    Fabric.wait_until_clickable_by('xpath', '//*[@class="bg-white"]/tr[{}]'.format(crash_index)).click()
+    Fabric.wait_until_clickable_by(
+        'xpath', '//*[@class="bg-white"]/tr[{}]'.format(crash_index)).click()
     crash_message = get_crash_message()
     print("CRASH MESSAGE: {}".format(crash_message))
-    Fabric.wait_until_clickable_by('css selector', '.button.green.inverse.ellipsis').click()
+    Fabric.wait_until_clickable_by('css selector',
+                                   '.button.green.inverse.ellipsis').click()
     Fabric.wait_until_visible_by('class name', 'cursor-pointer')
     sleep(1)
-    email = Fabric.driver.find_element_by_class_name('cursor-pointer').get_attribute('text')
+    email = Fabric.driver.find_element_by_class_name(
+        'cursor-pointer').get_attribute('text')
     name = get_name(email)
     print("USER NAME: {}".format(name))
     return name, crash_message
 
 
 def get_crash_message():
-    Fabric.wait_until_clickable_by('css selector', '.flex-1.padding-right-10px.strong.title')
-    crash_message = Fabric.driver.find_element_by_css_selector('.flex-1.padding-right-10px.strong.title')
+    Fabric.wait_until_clickable_by('css selector',
+                                   '.flex-1.padding-right-10px.strong.title')
+    crash_message = Fabric.driver.find_element_by_css_selector(
+        '.flex-1.padding-right-10px.strong.title')
     crash_message = crash_message.__getattribute__('text')
     print(type(crash_message))
     return crash_message
@@ -114,7 +120,7 @@ def get_name(email):
     print("EMAIL: {}".format(email))
     unedited_name = re.search(r"([^@]+)(?=@)", email).group(0)
     name = unedited_name.replace(".", " ").title()
-    return(name)
+    return (name)
 
 
 def extract_squad(name):
@@ -125,7 +131,8 @@ def extract_squad(name):
         return "no-slack-room"
 
 
-def message_content(crash_name, crash_message, user_name, first_build, last_build, channels):
+def message_content(crash_name, crash_message, user_name, first_build,
+                    last_build, channels):
     return "\n"\
         "*Crash in Hudl Test: {}*\n"\
         "{}\n"\
@@ -143,9 +150,20 @@ def get_channels(first_squad, last_squad):
         raise e
 
 
-def notify(crash_name, crash_message, user_name, first_build, last_build, first_squad, last_squad):
+def notify(crash_name, crash_message, user_name, first_build, last_build,
+           first_squad, last_squad):
     channels = get_channels(first_squad, last_squad)
-    payload = json.dumps({"channel": "#modi_test_crashes", "username": "Test Crashes", "text": message_content(crash_name, crash_message, user_name, first_build, last_build, channels), "icon_emoji": ":ghost:"})
+    payload = json.dumps({
+        "channel":
+        "#modi_test_crashes",
+        "username":
+        "Test Crashes",
+        "text":
+        message_content(crash_name, crash_message, user_name, first_build,
+                        last_build, channels),
+        "icon_emoji":
+        ":ghost:"
+    })
     url = 'https://hooks.slack.com/services/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'
     requests.post(url, data=payload)
 
@@ -154,7 +172,8 @@ def main():
     try:
         Fabric.fabric_login()
         Fabric.driver.get(modi_url)
-        Fabric.wait_until_clickable_by('class name', 'Select-value-icon').click()
+        Fabric.wait_until_clickable_by('class name',
+                                       'Select-value-icon').click()
         crash_table = get_table_of_crashes()
         number_of_crashes = len(crash_table)
         while number_of_crashes > 0:
@@ -168,10 +187,12 @@ def main():
             if "Fatal Exception: RIP" in crash_message:
                 print("Purposeful crash - don't post...")
             else:
-                notify(crash_name, crash_message, user_name, first_build, last_build, first_squad, last_squad)
+                notify(crash_name, crash_message, user_name, first_build,
+                       last_build, first_squad, last_squad)
             number_of_crashes -= 1
             Fabric.driver.get(modi_url)
-            Fabric.wait_until_clickable_by('class name', 'Select-value-icon').click()
+            Fabric.wait_until_clickable_by('class name',
+                                           'Select-value-icon').click()
         Fabric.driver.quit()
     except Exception as e:
         Fabric.driver.quit()
