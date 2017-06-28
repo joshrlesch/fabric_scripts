@@ -127,7 +127,8 @@ def extract_squad(name):
 
 def message_content(crash_name, crash_message, user_name, first_build, last_build, channels):
     return "\n"\
-        "*Crash in Hudl Test: {} - {}*\n"\
+        "*Crash in Hudl Test: {}*\n"\
+        "{}\n"\
         "First seen in build _{}_ from #{}\n"\
         "Last seen in build _{}_ from #{}\n"\
         "last caused by user {}".format(crash_name, crash_message, first_build, channels[0], last_build, channels[1], user_name)
@@ -144,7 +145,7 @@ def get_channels(first_squad, last_squad):
 
 def notify(crash_name, crash_message, user_name, first_build, last_build, first_squad, last_squad):
     channels = get_channels(first_squad, last_squad)
-    payload = json.dumps({"channel": "#omananny", "username": "Test Crashes", "text": message_content(crash_name, crash_message, user_name, first_build, last_build, channels), "icon_emoji": ":ghost:"})
+    payload = json.dumps({"channel": "#modi_test_crashes", "username": "Test Crashes", "text": message_content(crash_name, crash_message, user_name, first_build, last_build, channels), "icon_emoji": ":ghost:"})
     url = 'https://hooks.slack.com/services/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'
     requests.post(url, data=payload)
 

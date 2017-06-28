@@ -22,7 +22,6 @@ modi_versions = os.environ['MODI_VERSION']
 hudroid_versions = os.environ['HUDROID_VERSION']
 
 
-
 def get_url_for_crash(crash, link_index):
     try:
         return crash.find_element_by_xpath("//tbody[@class='bg-white']/tr[{}]/td[2]/a".format(link_index)).get_attribute('href')[17:]
@@ -131,10 +130,10 @@ def get_icons_if_any(crash, crash_info, link_index, crash_data_dict):
 def check_crash_for_icons(crash):
     try:
         return crash.find_element_by_class_name('badges')
-    except NoSuchElementException as e:
+    except NoSuchElementException:
         print("[icons] No icons for crash.")
         return False
-    except StaleElementReferenceException as e:
+    except StaleElementReferenceException:
         print("[icons] Stale icon.")
         return False
 
@@ -142,7 +141,7 @@ def check_crash_for_icons(crash):
 def get_icon(crash, link, icon_index):
     try:
         return crash.find_element_by_xpath("//a[@href='{}']/../div[@class='badges']/div[{}]".format(link, icon_index))
-    except NoSuchElementException as e:
+    except NoSuchElementException:
         print("[get_icon] No icon for index {}.".format(icon_index))
 
 
@@ -217,6 +216,7 @@ def add_crash_to_db(crash_data_dict):
         run_time=crash_data_dict['current_time'])
     session.add(info_to_db)
     session.commit()
+
 
 def main():
     try:
