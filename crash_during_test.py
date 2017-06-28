@@ -1,6 +1,7 @@
 import requests
 import json
 import re
+import os
 
 from time import sleep
 
@@ -9,7 +10,7 @@ from base_fabric import BaseFabric
 
 Fabric = BaseFabric()
 
-incoming_webhook_url = "https://hooks.slack.com/services/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"
+incoming_webhook_url = os.environ['SLACK_WEBHOOK']
 modi_url = "https://fabric.io/hudl5/ios/apps/com.hudl.modie/issues?time=last-hour&event_type=all&subFilter=state&state=open&showAllBuilds=true"
 
 groups = {
