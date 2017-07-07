@@ -23,16 +23,16 @@ Fabric = BaseFabric()
 modi_versions = os.environ['MODI_VERSION']
 hudroid_versions = os.environ['HUDROID_VERSION']
 
-s3_key = 'key'
-s3_secret = 'secret'
-bucket = 'bucket'
+s3_key = os.environ['S3_KEY']
+s3_secret = os.environ['S3_SECRET']
+s3_bucket = os.environ['S3_BUCKET']
 
 
 def upload_to_s3(file):
     conn = tinys3.Connection(s3_key, s3_secret, tls=True)
 
     f = open(file, 'rb')
-    conn.upload(file, f, bucket)
+    conn.upload(file, f, s3_bucket)
 
 
 def get_url_for_crash(crash, link_index):
