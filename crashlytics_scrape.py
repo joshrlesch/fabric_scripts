@@ -253,6 +253,13 @@ def save_to_file(crash_data_dict):
         file.write(crash_data + '\n')
 
 
+def delete_file(file):
+    try:
+        os.remove(file)
+    except FileNotFoundError as e:
+        print(e)
+
+
 def main():
     try:
         bundles_and_versions = get_bundles_and_versions()
@@ -302,7 +309,4 @@ def main():
 if __name__ == "__main__":
     main()
     # upload_to_s3(file)
-    try:
-        os.remove('crashes.json')
-    except FileNotFoundError as e:
-        print(e)
+    delete_file('crashes.json')
