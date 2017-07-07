@@ -1,5 +1,7 @@
 import os
 import time
+import tinys3
+import json
 
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 from sqlalchemy import create_engine
@@ -20,6 +22,17 @@ Fabric = BaseFabric()
 
 modi_versions = os.environ['MODI_VERSION']
 hudroid_versions = os.environ['HUDROID_VERSION']
+
+s3_key = 'key'
+s3_secret = 'secret'
+bucket = 'bucket'
+
+
+def upload_to_s3(file):
+    conn = tinys3.Connection(s3_key, s3_secret, tls=True)
+
+    f = open(file, 'rb')
+    conn.upload(file, f, bucket)
 
 
 def get_url_for_crash(crash, link_index):
@@ -234,6 +247,12 @@ def add_crash_to_db(crash_data_dict):
     session.commit()
 
 
+def save_to_file(crash_data_dict):
+    crash_data = json.dumps(crash_data_dict)
+    with open('crashes.json', 'a') as file:
+        file.write(crash_data + '\n')
+
+
 def main():
     try:
         bundles_and_versions = get_bundles_and_versions()
@@ -269,8 +288,10 @@ def main():
                                 TopCrashes.app_version == crash_data_dict[
                                     'version']).one()
                         update_crash_in_db(crash_search, crash_data_dict)
+                        save_to_file(crash_data_dict)
                     except NoResultFound:
                         add_crash_to_db(crash_data_dict)
+                        save_to_file(crash_data_dict)
                     link_index += 1
         Fabric.driver.quit()
     except Exception as e:
@@ -280,3 +301,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # upload_to_s3(file)
+    try:
+        os.remove('crashes.json')
+    except FileNotFoundError as e:
+        print(e)
