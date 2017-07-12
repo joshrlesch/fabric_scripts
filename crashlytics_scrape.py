@@ -242,6 +242,14 @@ def save_to_file(crash_data_dict):
         file.write(crash_data + '\n')
 
 
+def delete_file_if_exists():
+    try:
+        os.remove('crashes.json')
+        print("Old file deleted")
+    except FileNotFoundError as e:
+        print(e)
+
+
 def main():
     try:
         bundles_and_versions = get_bundles_and_versions()
@@ -289,5 +297,5 @@ def main():
 
 
 if __name__ == "__main__":
+    delete_file_if_exists()
     main()
-
