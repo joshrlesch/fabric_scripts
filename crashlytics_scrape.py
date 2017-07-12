@@ -236,16 +236,10 @@ def add_crash_to_db(crash_data_dict):
 
 
 def save_to_file(crash_data_dict):
+    working_dir = os.getcwd()
     crash_data = json.dumps(crash_data_dict)
-    with open('crashes.json', 'a') as file:
+    with open('{}/crashes.json'.format(working_dir), 'a') as file:
         file.write(crash_data + '\n')
-
-
-def delete_file(file):
-    try:
-        os.remove(file)
-    except FileNotFoundError as e:
-        print(e)
 
 
 def main():
@@ -296,3 +290,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
