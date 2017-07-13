@@ -236,15 +236,16 @@ def add_crash_to_db(crash_data_dict):
 
 
 def save_to_file(crash_data_dict):
-    working_dir = os.getcwd()
+    home = os.path.expanduser("~")
     crash_data = json.dumps(crash_data_dict)
-    with open('{}/crashes.json'.format(working_dir), 'a') as file:
+    with open('{}/crashes.json'.format(home), 'a') as file:
         file.write(crash_data + '\n')
 
 
 def delete_file_if_exists():
+    home = os.path.expanduser("~")
     try:
-        os.remove('crashes.json')
+        os.remove('{}/crashes.json'.format(home))
         print("Old file deleted")
     except FileNotFoundError as e:
         print(e)
